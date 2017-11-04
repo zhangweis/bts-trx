@@ -23,4 +23,7 @@ apiManager.connect().then(()=>{
       render: h => h(require('./App'))
     })
   })
-}).catch(alert)
+}).catch(e=>{
+  alert(e)
+  location.reload()
+})

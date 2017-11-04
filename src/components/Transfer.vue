@@ -32,12 +32,24 @@
            <q-select type="list" v-model="sendAmount.asset" :options="assetNames"></q-select>
           <label>Asset</label>
         </div>
+        <div class="stacked-label">
+          <br/>
+          <input v-model="sendAmount.asset" class="full-width" />
+          <label>Or Input Asset Name</label>
+        </div>
         <button class='full-width primary' @click='generateTrx'>Generate Trx</button>
         <p class="caption">Trx <button v-clipboard:copy='trxJson' class='secondary'>Copy</button></p>
         <textarea readonly='true' class='full-width' rows='10' cols='80' v-model='trxJson'></textarea>
         <p class="caption">Signed Trx</p>
         <textarea class='full-width' rows='10' cols='80' v-model='signedTx'></textarea>
         <button class='full-width primary' @click='broadcastTx'>Broadcast</button>
+        <p class="caption">Tx. Fee</p>
+        <textarea class='full-width' rows='10' cols='80' v-model='trxForFee'></textarea>
+        <button class='full-width primary' @click='getFee'>Get Fee</button>
+        <p class="caption">Signature</p>
+        <textarea class='full-width' rows='10' cols='80' v-model='signature'></textarea>
+        <button class='full-width primary' @click='toSigned'>To Signed Trx</button>
+        </div>
       </div>
 
     </div>
@@ -57,6 +69,8 @@ export default {
     return {
       fromAccount:'',
       toAccount:'',
+      trxForFee:'',
+      signature: '',
       sendAmount: {
             amount: 1,
             asset: "CNY"
@@ -96,6 +110,7 @@ export default {
                     return tr.finalize();
                 }).then(()=>{
                     this.trxJson = JSON.stringify(extend({tr_buffer:tr.tr_buffer.toString('hex'), chain_id:Apis.instance().chain_id}, tr.toObject()))
+                    this.trxForFee = JSON.stringify(tr.toObject())
                     // tr.add_signer(pKey, pKey.toPublicKey().toPublicKeyString());
                     // console.log("serialized transaction:", tr.serialize());
                     // tr.broadcast();
@@ -116,6 +131,31 @@ export default {
         console.error(e)
         Toast.create.negative(e)
       })
+    },
+    getFee() {
+      Promise.resolve().then(()=>{
+        var tr = new TransactionBuilder()
+        extend(tr, JSON.parse(this.trxForFee))
+        return tr.set_required_fees().then(() => {
+            return tr.finalize();
+        }).then(()=>{
+            this.trxJson = JSON.stringify(extend({tr_buffer:tr.tr_buffer.toString('hex'), chain_id:Apis.instance().chain_id}, tr.toObject()))
+            // tr.add_signer(pKey, pKey.toPublicKey().toPublicKeyString());
+            // console.log("serialized transaction:", tr.serialize());
+            // tr.broadcast();
+        })
+      }).then(() => {
+        Toast.create.positive('Fee Got')
+      }).catch(e => {
+        console.error(e)
+        Toast.create.negative(e)
+      })
+    },
+    toSigned() {
+      var tx = extend(JSON.parse(this.trxJson), {signatures:[this.signature]})
+      delete tx.tr_buffer
+      delete tx.chain_id
+      this.signedTx = JSON.stringify(tx)
     }
   },
   mounted () {
