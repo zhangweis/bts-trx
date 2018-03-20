@@ -90,6 +90,7 @@ module.exports = {
 
     new webpack.DefinePlugin({
       'process.env': config[env.prod ? 'build' : 'dev'].env,
+      'process.env.bts_servers': JSON.stringify(process.env.bts_servers||'wss://bitshares.openledger.info/ws,wss://bit.btsabc.org/ws'),
       'DEV': env.dev,
       'PROD': env.prod,
       '__THEME': '"' + env.platform.theme + '"'

@@ -14,7 +14,7 @@ var VueClipboard = require('vue-clipboard2')
 VueClipboard.install(Vue)
 Vue.use(Quasar) // Install Quasar Framework
 
-apiManager.connect().then(()=>{
+apiManager.connect((localStorage.bts_servers||process.env.bts_servers).split(',')).then(()=>{
   Quasar.start(() => {
     /* eslint-disable no-new */
     new Vue({

@@ -37,6 +37,11 @@
           <input v-model="sendAmount.asset" class="full-width" />
           <label>Or Input Asset Name</label>
         </div>
+        <div class="stacked-label">
+          <br/>
+          <input v-model="feeAssetName" class="full-width" />
+          <label>Fee Asset Name</label>
+        </div>
         <button class='full-width primary' @click='generateTrx'>Generate Trx</button>
         <p class="caption">Trx <button v-clipboard:copy='trxJson' class='secondary'>Copy</button></p>
         <textarea readonly='true' class='full-width' rows='10' cols='80' v-model='trxJson'></textarea>
@@ -71,6 +76,7 @@ export default {
       toAccount:'',
       trxForFee:'',
       signature: '',
+      feeAssetName: 'BTS',
       sendAmount: {
             amount: 1,
             asset: "CNY"
@@ -90,10 +96,9 @@ export default {
       Promise.all([
         apiManager.exec_db('get_account_by_name', [this.fromAccount]),
         apiManager.exec_db('get_account_by_name', [this.toAccount]),
-        apiManager.getAsset(this.sendAmount.asset)
-        ]).then(([btsFromAccount, btsToAccount, sendAsset]) => {
-                const feeAsset = sendAsset
-
+        apiManager.getAsset(this.sendAmount.asset),
+        apiManager.getAsset(this.feeAssetName)
+        ]).then(([btsFromAccount, btsToAccount, sendAsset, feeAsset]) => {
                 let tr = new TransactionBuilder()
 
                 tr.add_type_operation( "transfer", {
